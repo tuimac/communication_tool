@@ -1,5 +1,25 @@
 #!/bin/bash
 
+function _genPassword(){
+    openssl rand -hex 16
+}
+
+function _jitsiGenPassword(){
+    local COFO_AUTH_PASSWORD=$(_genPassword)
+    local JVB_AUTH_PASSWORD=$(_genPassword)
+    local JIGASI_XMPP_PASSWORD=$(_genPassword)
+    local JIBRI_RECORDER_PASSWORD=$(_genPassword)
+    local JIBRI_XMPP_PASSWORD=$(_genPassword)
+
+    sed -i.bak \
+        -e "s#JICOFO_AUTH_PASSWORD=.*#JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD}#g" \
+        -e "s#JVB_AUTH_PASSWORD=.*#JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD}#g" \
+        -e "s#JIGASI_XMPP_PASSWORD=.*#JIGASI_XMPP_PASSWORD=${JIGASI_XMPP_PASSWORD}#g" \
+        -e "s#JIBRI_RECORDER_PASSWORD=.*#JIBRI_RECORDER_PASSWORD=${JIBRI_RECORDER_PASSWORD}#g" \
+        -e "s#JIBRI_XMPP_PASSWORD=.*#JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}#g" \
+        "$(dirname "$0")/.env"
+}
+
 function createContainers(){
     cp env .env
     mkdir -p postgresql/{data,logs,wal_archive}

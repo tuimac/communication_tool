@@ -8,51 +8,49 @@ DOMAIN=13.208.42.203
 # Timezone
 TZ=Asia/Tokyo
 
+# Reverse Proxy server configuration
+# https://hub.docker.com/_/nginx
+NGINX_VERSION=1.21.6
+HTTPS_PORT=443
 
-
-
-
-
-
+# Database server configuration
+# https://hub.docker.com/_/postgres
+POSTGRES_VERSION=14
+POSTGRES_USER=comm_tool
+POSTGRES_PASSWORD=password
 
 ############################
 # Mattermost Configuration #
 ############################
+# This is the sample configuration URL for original Mattermost
+# https://github.com/mattermost/docker/blob/main/env.example
 
-# PostgreSQL container configuration
-# https://hub.docker.com/_/postgres
-POSTGRES_VERSION=14
-POSTGRES_USER=mmuser
-POSTGRES_PASSWORD=mmuser_password
-POSTGRES_DB=mattermost
 
+# Application configuration for Mattermost
 # This will be 'mattermost-enterprise-edition' or 'mattermost-team-edition' based on the version of Mattermost you're installing.
 # https://hub.docker.com/u/mattermost
 MATTERMOST_IMAGE=mattermost-enterprise-edition
 MATTERMOST_VERSION=6.3
+MM_SERVICESETTINGS_SITEURL=https://${DOMAIN}/mattermost
 APP_PORT=8065
 
-# Nginx container configuration
-# https://hub.docker.com/_/nginx
-NGINX_VERSION=1.21.6
-HTTPS_PORT=443
-HTTP_PORT=80
-
-# Database connection information for Mattermost
+# Database configuration for Mattermost
+MATTERMOST_DB=mattermost
 MM_SQLSETTINGS_DRIVERNAME=postgres
-MM_SQLSETTINGS_DATASOURCE=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable&connect_timeout=10
-
-# This is external URL for Mattermost
-MM_SERVICESETTINGS_SITEURL=http://${DOMAIN}/mattermost
+MM_SQLSETTINGS_DATASOURCE=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${MATTERMOST_DB}?sslmode=disable&connect_timeout=10
 
 #######################
 # Jitsi Configuration #
 #######################
+# This is the sample configuration URL for original Jitsi
+# https://github.com/jitsi/docker-jitsi-meet/blob/master/env.example
+
 
 # Jitsi docker images version
 # https://hub.docker.com/u/jitsi/
 JITSI_VERSION=stable-6826
 
+# XMPP configuration
 # XMPP password for Jicofo client connections
 JICOFO_AUTH_PASSWORD=781e35138f9d57f5b170cd369646cbe1
 # XMPP password for JVB client connections
@@ -65,7 +63,7 @@ JIBRI_RECORDER_PASSWORD=3a9e6aeaa12bab92567d26f2dc6569f3
 JIBRI_XMPP_PASSWORD=0300636f594a609173344b8975364c99
 
 # Network configuration
-PUBLIC_URL=https://${DOMAIN}
+PUBLIC_URL=https://${DOMAIN}/jitsi
 DOCKER_HOST_ADDRESS=${DOMAIN}
 ENABLE_XMPP_WEBSOCKET=0
 
