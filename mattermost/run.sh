@@ -25,6 +25,18 @@ function deleteAll(){
     sudo rm -rf volumes/
 }
 
+function stopContaiers(){
+    docker-compose stop
+}
+
+function startContaiers(){
+    docker-compose start
+}
+
+function restartContaiers(){
+    docker-compose restart
+}
+
 function userguide(){
     echo -e "usage: ./run.sh [help | create | delete]"
     echo -e "
@@ -36,17 +48,31 @@ delete              Delete image and container.
 
 function main(){
     [[ -z $1 ]] && { userguide; exit 1; }
-    if [ $1 == "create" ]; then
-        createContainer
-    elif [ $1 == "delete" ]; then
-        deleteAll
-    elif [ $1 == "help" ]; then
-        userguide
-    elif [ $1 == "register-secret" ]; then
-        registerSecret
-    else
-        { userguide; exit 1; }
-    fi
+    case $1 in
+        'create')
+            createContainer
+            ;;
+        'delete')
+            deleteAll
+            ;;
+        'stop')
+            stopContainers
+            ;;
+        'start')
+            startContainers
+            ;;
+        'restart')
+            restartContainers
+            ;;
+        'help')
+            userguide
+            exit 1
+            ;;
+        *)
+            userguide
+            exit 1
+            ;;
+    esac
 }
 
 main $1
