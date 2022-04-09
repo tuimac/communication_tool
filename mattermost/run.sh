@@ -1,28 +1,22 @@
 #!/bin/bash
 
-function runContainer(){
-    mkdir -p ./volumes/app/mattermost/{data,logs,config,plugins}
-    chown -R ${USER}:${USER} ./volumes/app/mattermost/
+function createContainers(){
+    mkdir -p ./mattermost/{data,logs,config,plugins}
+    chown -R ${USER}:${USER} ./mattermost/
     docker-compose up -d
-}
-
-function cleanup(){
-    docker image prune -f
-    docker container prune -f
-}
-
-function createContainer(){
-    runContainer
-    cleanup
 }
 
 function deleteAll(){
     docker-compose down
-    docker rmi mattermost_web
-    docker rmi mattermost_app
-    docker rmi mattermost_db
+    docker rmi postgresql
+    docker rmi mattermost
+    docker rmi nginx
     cleanup
-    sudo rm -rf volumes/
+    sudo rm -rf ./postgresql/data
+    sudo rm -rf ./postgresql/wal_archive
+    sudo rm -rf ./postgresql/logs
+    sudo rm -rf ./nginx/logs
+    sudo rm -rf ./mattermost
 }
 
 function stopContaiers(){
@@ -50,7 +44,7 @@ function main(){
     [[ -z $1 ]] && { userguide; exit 1; }
     case $1 in
         'create')
-            createContainer
+            createContainers
             ;;
         'delete')
             deleteAll
