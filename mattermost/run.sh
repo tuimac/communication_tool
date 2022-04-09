@@ -2,22 +2,20 @@
 
 function createContainers(){
     cp env .env
-    mkdir -p ./postgresql/{data,logs,config,wal_archive}
-    mkdir -p ./mattermost/{data,logs,config,plugins}
-    mkdir -p ./nginx/{logs,config}
+    mkdir -p postgresql/{data,logs,wal_archive}
+    mkdir -p mattermost/{config,data,logs,plugins,client/plugins,bleve-indexes}
+    mkdir -p nginx/{logs}
     sudo chown 999:999 -R postgresql/
-    chown -R ${USER}:${USER} ./mattermost/
+    sudo chown -R 2000:2000 mattermost/
     sudo chown 101:101 -R nginx/
     docker-compose up -d
 }
 
 function deleteAll(){
     docker-compose down
-    sudo rm -rf ./postgresql/data
-    sudo rm -rf ./postgresql/wal_archive
-    sudo rm -rf ./postgresql/logs
-    sudo rm -rf ./mattermost
-    sudo rm -rf ./nginx/logs
+    sudo rm -rf postgresql/{data,logs,wal_archive}
+    sudo rm -rf mattermost
+    sudo rm -rf nginx/{logs}
     sudo chown -R ec2-user:ec2-user .
     rm .env
 }
