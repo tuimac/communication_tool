@@ -1,34 +1,38 @@
 #!/bin/bash
 
 function createContainers(){
+    cp env .env
+    mkdir -p ./postgresql/{data,logs,config,wal_archive}
     mkdir -p ./mattermost/{data,logs,config,plugins}
+    mkdir -p ./nginx/{logs,config}
+    sudo chown 999:999 -R postgresql/
     chown -R ${USER}:${USER} ./mattermost/
+    sudo chown 101:101 -R nginx/
     docker-compose up -d
 }
 
 function deleteAll(){
     docker-compose down
-    docker rmi postgresql
-    docker rmi mattermost
-    docker rmi nginx
-    cleanup
     sudo rm -rf ./postgresql/data
     sudo rm -rf ./postgresql/wal_archive
     sudo rm -rf ./postgresql/logs
-    sudo rm -rf ./nginx/logs
     sudo rm -rf ./mattermost
+    sudo rm -rf ./nginx/logs
+    sudo chown -R ec2-user:ec2-user .
+    rm .env
 }
 
 function stopContaiers(){
-    docker-compose stop
+    docker-compose down
 }
 
 function startContaiers(){
-    docker-compose start
+    docker-compose up -d
 }
 
 function restartContaiers(){
-    docker-compose restart
+    docker-compose down
+    docker-compose up -d
 }
 
 function userguide(){
