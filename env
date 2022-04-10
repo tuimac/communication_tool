@@ -63,7 +63,7 @@ JIBRI_RECORDER_PASSWORD=3a9e6aeaa12bab92567d26f2dc6569f3
 JIBRI_XMPP_PASSWORD=0300636f594a609173344b8975364c99
 
 # Network configuration
-PUBLIC_URL=https://${DOMAIN}/jitsi
+PUBLIC_URL=https://${DOMAIN}/jitsi/
 DOCKER_HOST_ADDRESS=${DOMAIN}
 ENABLE_XMPP_WEBSOCKET=0
 
@@ -77,25 +77,25 @@ ETHERPAD_SKIN_NAME=colibris
 ETHERPAD_SKIN_VARIANTS="super-light-toolbar super-light-editor light-background full-width-editor"
 
 # Internal XMPP domain
-XMPP_DOMAIN=meet.jitsi
+XMPP_DOMAIN=comm-tool.local
 
 # Internal XMPP server
-XMPP_SERVER=xmpp.meet.jitsi
+XMPP_SERVER=xmpp.comm-tool.local
 
 # Internal XMPP server URL
-XMPP_BOSH_URL_BASE=http://xmpp.meet.jitsi:5280
+XMPP_BOSH_URL_BASE=http://xmpp.comm-tool.local:5280
 
 # Internal XMPP domain for authenticated services
-XMPP_AUTH_DOMAIN=auth.meet.jitsi
+XMPP_AUTH_DOMAIN=auth.comm-tool.local
 
 # XMPP domain for the MUC
-XMPP_MUC_DOMAIN=muc.meet.jitsi
+XMPP_MUC_DOMAIN=muc.comm-tool.local
 
 # XMPP domain for the internal MUC used for jibri, jigasi and jvb pools
-XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+XMPP_INTERNAL_MUC_DOMAIN=internal-muc.comm-tool.local
 
 # XMPP domain for unauthenticated users
-XMPP_GUEST_DOMAIN=guest.meet.jitsi
+XMPP_GUEST_DOMAIN=guest.comm-tool.local
 
 # Comma separated list of domains for cross domain policy or "true" to allow all
 # The PUBLIC_URL is always allowed
@@ -150,7 +150,7 @@ JIGASI_PORT_MIN=20000
 JIGASI_PORT_MAX=20050
 
 # XMPP domain for the jibri recorder
-XMPP_RECORDER_DOMAIN=recorder.meet.jitsi
+XMPP_RECORDER_DOMAIN=recorder.comm-tool.local
 
 # XMPP recorder user for Jibri client connections
 JIBRI_RECORDER_USER=recorder
