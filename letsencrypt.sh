@@ -2,7 +2,7 @@
 
 DOMAIN='comm.tuimac.com'
 BASEDIR='/etc/letsencrypt/archive/'${DOMAIN}
-
+MAIL='tuimac.devadm01@gmail.com'
 
 function createCerts(){
     [[ $USER != 'root' ]] && { echo 'Must be root!'; exit 1; }
@@ -11,6 +11,29 @@ function createCerts(){
     yum-config-manager --enable epel*
     amazon-linux-extras install epel -y
     yum install -y certbot python2-certbot-nginx expect
+    expect -c "
+    set timeout 15
+    spawn certbot certonly
+    expect \"Select the appropriate number \[1-2\] then \[enter\] (press 'c' to cancel):\"
+    send \"1\n\"
+    expect \" (Enter 'c' to cancel):\"
+    send \"${MAIL}\n\"
+    expect \"(Y)es\/(N)o:\"
+    send \"Y\n\"
+    expect \"(Y)es\/(N)o:\"
+    send \"Y\n\"
+    expect \"*to cancel):\"
+    send \"${DOMAIN}\n\"
+    "
+    mkdir -p nginx/letsencrypt
+    cp ${BASEDIR}/fullchain1.pem nginx/letsencrypt/fullchain.pem
+    cp ${BASEDIR}/privkey1.pem nginx/letsencrypt/privkey.pem
+}
+
+function renewCerts(){
+    certbot renew --no-self-upgrade
+    cp ${BASEDIR}/fullchain1.pem nginx/letsencrypt/fullchain.pem
+    cp ${BASEDIR}/privkey1.pem nginx/letsencrypt/privkey.pem
 }
 
 function userguide(){
@@ -39,4 +62,4 @@ function main(){
     esac    
 }
 
-main
+main $1
