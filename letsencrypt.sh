@@ -7,13 +7,43 @@ MAIL='tuimac.devadm01@gmail.com'
 # Just Let's encrypt directory
 BASEDIR='/etc/letsencrypt/archive/'${DOMAIN}
 
+function _envDelete(){
+    docker stop test
+    docker rm test
+    docker rmi nginx:latest
+}
+
+function _healthcheck(){
+	docker run -itd --name test -p 80:80 nginx:latest
+	sleep 2
+	for i in {0..10}; do
+		STATUS_CODE=$(curl -LI http://${DOMAIN} -o /dev/null -w '%{http_code}\n' -s)
+		[[ $STATUS_CODE == '200' ]] && { _envDelete; return 0; }
+		sleep 3
+	done
+    _envDelete
+	return 1
+}
+
+
 function createCerts(){
+    # Check authorization
     [[ $USER != 'root' ]] && { echo 'Must be root!'; exit 1; }
+
+    # Install fedora repository to install certbot
     wget -r --no-parent -A 'epel-release-*.rpm' https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/
     rpm -Uvh dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-*.rpm
     yum-config-manager --enable epel*
     amazon-linux-extras install epel -y
+
+    # Install software
     yum install -y certbot python2-certbot-nginx expect
+
+    # Health Check if the DOMAIN url is valid or not
+    _healthcheck
+    [[ $? -ne 0 ]] && { echo 'Health Check has been failed!'; exit 1; }
+
+    # Create the certifications of Let's encrypt by expect
     expect -c "
     set timeout 15
     spawn certbot certonly
@@ -29,6 +59,8 @@ function createCerts(){
     send \"${DOMAIN}\n\"
     expect \"Congratuation!*\"
     exit 0"
+
+    # Create the directory to deploy the SSL certs for nginx container
     mkdir -p nginx/letsencrypt
     cp ${BASEDIR}/fullchain1.pem nginx/letsencrypt/fullchain.pem
     cp ${BASEDIR}/privkey1.pem nginx/letsencrypt/privkey.pem
