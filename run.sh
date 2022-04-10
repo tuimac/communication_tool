@@ -42,16 +42,18 @@ function deleteAll(){
     rm .env
 }
 
-function stopContaiers(){
+function stopContainers(){
+    cp env .env
     docker-compose down
 }
 
-function startContaiers(){
+function startContainers(){
     docker-compose up -d
 }
 
-function restartContaiers(){
+function restartContainers(){
     docker-compose down
+    cp env .env
     docker-compose up -d
 }
 

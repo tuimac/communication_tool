@@ -13,6 +13,7 @@ services:
       - ./postgresql/config:/etc/postgresql
       - ./postgresql/wal_archive:/var/lib/postgresql/archive
       - ./postgresql/logs:/var/log/postgresql
+      - ./postgresql/initdb:/docker-entrypoint-initdb.d
     command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
     environment:
       - TZ
@@ -54,6 +55,8 @@ services:
     hostname: jitsi
     restart: always
     pids_limit: 200
+    ports:
+      - 80:80
     volumes:
       - ./jitsi/web:/config
       - ./jitsi/web/crontabs:/var/spool/cron/crontabs

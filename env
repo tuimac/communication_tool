@@ -3,7 +3,7 @@
 #########################
 #
 # Domain of service
-DOMAIN=13.208.42.203
+DOMAIN=comm.tuimac.com
 
 # Timezone
 TZ=Asia/Tokyo
