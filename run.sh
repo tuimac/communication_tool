@@ -25,7 +25,7 @@ function createContainers(){
     mkdir -p postgresql/{data,logs,wal_archive}
     mkdir -p mattermost/{config,data,logs,plugins,client/plugins,bleve-indexes}
     mkdir -p jitsi/{web/crontabs,web/letsencrypt,transcripts,prosody/config,prosody/prosody-plugins-custom,jicofo,jvb,jigasi,jibri}
-    mkdir -p nginx/{logs}
+    mkdir -p nginx/logs
     sudo chown -R 999:999 postgresql/
     sudo chown -R 2000:2000 mattermost/
     sudo chown -R 101:101 nginx/

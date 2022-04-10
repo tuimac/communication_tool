@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# You need to change here.
 DOMAIN='comm.tuimac.com'
-BASEDIR='/etc/letsencrypt/archive/'${DOMAIN}
 MAIL='tuimac.devadm01@gmail.com'
+
+# Just Let's encrypt directory
+BASEDIR='/etc/letsencrypt/archive/'${DOMAIN}
 
 function createCerts(){
     [[ $USER != 'root' ]] && { echo 'Must be root!'; exit 1; }

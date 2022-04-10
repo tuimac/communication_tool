@@ -381,3 +381,4 @@ services:
 
 networks:
   comm-tool.local:
+    name: comm-tool.local
