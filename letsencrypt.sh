@@ -64,6 +64,9 @@ function createCerts(){
     mkdir -p nginx/letsencrypt
     cp ${BASEDIR}/fullchain1.pem nginx/letsencrypt/fullchain.pem
     cp ${BASEDIR}/privkey1.pem nginx/letsencrypt/privkey.pem
+
+    # Remove unnecessary files
+    rm -rf dl.fedoraproject.org/ 
 }
 
 function renewCerts(){
