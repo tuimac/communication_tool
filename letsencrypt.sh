@@ -25,9 +25,10 @@ function createCerts(){
     send \"Y\n\"
     expect \"(Y)es\/(N)o:\"
     send \"Y\n\"
-    expect \"*to cancel):\"
+    expect \"Please enter in your domain name(s) (comma and\/or space separated)  (Enter 'c' to cancel):\"
     send \"${DOMAIN}\n\"
-    "
+    expect \"Congratuation!*\"
+    exit 0"
     mkdir -p nginx/letsencrypt
     cp ${BASEDIR}/fullchain1.pem nginx/letsencrypt/fullchain.pem
     cp ${BASEDIR}/privkey1.pem nginx/letsencrypt/privkey.pem
