@@ -1,9 +1,16 @@
 #!/bin/bash
 
 DOMAIN='comm.tuimac.com'
+BASEDIR='/etc/letsencrypt/archive/'${DOMAIN}
+
 
 function createCerts(){
-    
+    [[ $USER != 'root' ]] && { echo 'Must be root!'; exit 1; }
+    wget -r --no-parent -A 'epel-release-*.rpm' https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/
+    rpm -Uvh dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-*.rpm
+    yum-config-manager --enable epel*
+    amazon-linux-extras install epel -y
+    yum install -y certbot python2-certbot-nginx expect
 }
 
 function userguide(){
