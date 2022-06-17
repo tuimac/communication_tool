@@ -236,7 +236,7 @@ Resources:
                 touch $LOG
                 exec >> $LOG 2>&1
                   yum update -y
-                  yum install git docker vim*
+                  yum install -y git docker vim*
                   mkdir -p /etc/vim/undo
                   mkdir -p /etc/vim/backup
                   rm /etc/vimrc
@@ -303,7 +303,7 @@ Resources:
                       touch $LOG
                       exec >> $LOG 2>&1
                         yum update -y
-                        yum install git docker vim*
+                        yum install -y git docker vim*
                         mkdir -p /etc/vim/undo
                         mkdir -p /etc/vim/backup
                         rm /etc/vimrc
