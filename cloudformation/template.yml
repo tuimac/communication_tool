@@ -1,18 +1,22 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 
+Description: Communication tool server for application development
 
 Parameters:
+  EC2LaunchType:
+    Type: String
+    Default: ondemand
+    AllowedValues:
+      - ondemand
+      - spot
+    Description: Choose value which EC2 launch type you want and fill in Default key.
+
   VpcCidr:
     Type: String
     Default: 10.0.0.0/27
 
-  SubnetACidr:
+  SubnetCidr:
     Type: String
     Default: 10.0.0.0/28
-
-  SubnetBCidr:
-    Type: String
-    Default: 10.0.0.16/28
 
   IPAddr:
     Type: String
@@ -33,6 +37,12 @@ Parameters:
   TagValue:
     Type: String
     Default: communication-tool
+
+Conditions:
+  IsEC2LaunchType:
+    !Equals
+      - !Ref EC2LaunchType
+      - spot
 
 Resources:
   # VPC
@@ -62,23 +72,12 @@ Resources:
       VpcId: !Ref Vpc
 
   # Subnet
-  SubnetA:
+  Subnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref Vpc
-      CidrBlock: !Ref SubnetACidr
+      CidrBlock: !Ref SubnetCidr
       AvailabilityZone: ap-northeast-3a
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: !Ref TagKey
-          Value: !Ref TagValue
-
-  SubnetB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref SubnetBCidr
-      AvailabilityZone: ap-northeast-3b
       MapPublicIpOnLaunch: true
       Tags:
         - Key: !Ref TagKey
@@ -100,17 +99,11 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  RouteTableAccociationA:
+  RouteTableAccociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref RouteTable
-      SubnetId: !Ref SubnetA
-
-  RouteTableAccociationB:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref RouteTable
-      SubnetId: !Ref SubnetB
+      SubnetId: !Ref Subnet
 
   # Security Group
   SecurityGroup:
@@ -185,50 +178,148 @@ Resources:
       Roles:
         - !Ref EC2InstanceRole
 
+  SpotFleetInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SpotFleetInstance
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - spotfleet.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole
+      Tags:
+        - Key: !Ref TagKey
+          Value: !Ref TagValue
+
   # EC2 Instance
-  Communication-tool-server:
+  CommunicationServer:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref AMIID
-      InstanceType: t3.small
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: true
-          DeleteOnTermination: true
-          Description: Primary Server ENI
-          GroupSet:
-            - !Ref SecurityGroup
-          SubnetId: !Ref SubnetA
-          DeviceIndex: 0
-          PrivateIpAddress: !Ref PrimaryIP
-      IamInstanceProfile: !Ref EC2InstanceProfile
-      SourceDestCheck: false
-      KeyName: !Ref SSHPemFilename
-      Tags:
-        - Key: Name
-          Value: comm-tool
-      UserData:
-        Fn::Base64: !Sub
-          - |
-            #!/bin/bash
-            LOG=/var/log/user-data.log
-            touch $LOG
-            exec >> $LOG 2>&1
-              yum update -y
-              yum install git docker vim*
-              mkdir -p /etc/vim/undo
-              mkdir -p /etc/vim/backup
-              rm /etc/vimrc
-              curl -L https://raw.githubusercontent.com/tuimac/tools/master/vim/vimrc -o /etc/vimrc
-              chmod -R 777 /etc/vim
-              echo 'if [ -n "$BASH_VERSION" -o -n "$KSH_VERSION" -o -n "$ZSH_VERSION" ]; then
-                [ -x /usr/bin/id ] || return
-                ID=`/usr/bin/id -u`
-                #[ -n "$ID" -a "$ID" -le 200 ] && return
-                # for bash and zsh, only if no alias is already set
-                alias vi >/dev/null 2>&1 || alias vi=vim
-              fi' > /etc/profile.d/vim.sh
-              systemctl enable docker
-              systemctl start docker
-              usermod -aG docker ec2-user
-
-              reboot
+      !If
+        - IsEC2LaunchType
+        - ImageId: !Ref AMIID
+          InstanceType: m5.large
+          NetworkInterfaces:
+            - AssociatePublicIpAddress: true
+              DeleteOnTermination: true
+              Description: ENI
+              GroupSet:
+                - !Ref SecurityGroup
+              SubnetId: !Ref Subnet
+              DeviceIndex: 0
+              PrivateIpAddress: !Ref IPAddr
+          IamInstanceProfile: !Ref EC2InstanceProfile
+          BlockDeviceMappings:
+            - DeviceName: /dev/sda1
+              Ebs:
+                DeleteOnTermination: true
+                Encrypted: true
+                Iops: 3000
+                VolumeSize: 10
+                VolumeType: gp3
+          SourceDestCheck: false
+          KeyName: !Ref SSHPemFilename
+          Tags:
+            - Key: Name
+              Value: comm-tool
+          UserData:
+            Fn::Base64: !Sub |
+                #!/bin/bash
+                LOG=/var/log/user-data.log
+                touch $LOG
+                exec >> $LOG 2>&1
+                  yum update -y
+                  yum install git docker vim*
+                  mkdir -p /etc/vim/undo
+                  mkdir -p /etc/vim/backup
+                  rm /etc/vimrc
+                  curl -L https://raw.githubusercontent.com/tuimac/tools/master/vim/vimrc -o /etc/vimrc
+                  chmod -R 777 /etc/vim
+                  echo 'if [ -n "$BASH_VERSION" -o -n "$KSH_VERSION" -o -n "$ZSH_VERSION" ]; then
+                    [ -x /usr/bin/id ] || return
+                    ID=`/usr/bin/id -u`
+                    #[ -n "$ID" -a "$ID" -le 200 ] && return
+                    # for bash and zsh, only if no alias is already set
+                    alias vi >/dev/null 2>&1 || alias vi=vim
+                  fi' > /etc/profile.d/vim.sh
+                  systemctl enable docker
+                  systemctl start docker
+                  usermod -aG docker ec2-user
+                  cd /home/ec2-user
+                  git clone https://github.com/tuimac/communication_tool; echo "cloned"
+                  chown -R ec2-user:ec2-user /home/ec2-user/communication_tool
+                  reboot
+        - SpotFleetRequestConfigData:
+            IamFleetRole: !GetAtt SpotFleetInstanceRole.Arn
+            TerminateInstancesWithExpiration: false
+            InstanceInterruptionBehavior: stop
+            TargetCapacity: 1
+            LaunchSpecifications:
+              - BlockDeviceMappings:
+                  - DeviceName: /dev/sda1
+                    Ebs:
+                      DeleteOnTermination: true
+                      Encrypted: true
+                      Iops: 3000
+                      VolumeSize: 10
+                      VolumeType: gp3
+                IamInstanceProfile:
+                  Arn: !GetAtt EC2InstanceProfile.Arn
+                ImageId: !Ref AMIID
+                InstanceType: m5.large
+                Monitoring:
+                  Enabled: false
+                NetworkInterfaces:
+                  - AssociatePublicIpAddress: true
+                    DeleteOnTermination: true
+                    Description: ContainerCLI Client Server
+                    Groups:
+                      - !Ref SecurityGroup
+                    SubnetId: !Ref Subnet
+                    DeviceIndex: 0
+                    PrivateIpAddresses: 
+                      - Primary: true
+                        PrivateIpAddress: !Ref IPAddr
+                IamInstanceProfile:
+                  Arn: !GetAtt EC2InstanceProfile.Arn
+                SpotPrice: 2
+                KeyName: !Ref SSHPemFilename
+                TagSpecifications:
+                  - ResourceType: instance
+                    Tags:
+                      - Key: Name
+                        Value: comm-tool
+                UserData:
+                  Fn::Base64: !Sub |
+                      #!/bin/bash
+                      LOG=/var/log/user-data.log
+                      touch $LOG
+                      exec >> $LOG 2>&1
+                        yum update -y
+                        yum install git docker vim*
+                        mkdir -p /etc/vim/undo
+                        mkdir -p /etc/vim/backup
+                        rm /etc/vimrc
+                        curl -L https://raw.githubusercontent.com/tuimac/tools/master/vim/vimrc -o /etc/vimrc
+                        chmod -R 777 /etc/vim
+                        echo 'if [ -n "$BASH_VERSION" -o -n "$KSH_VERSION" -o -n "$ZSH_VERSION" ]; then
+                          [ -x /usr/bin/id ] || return
+                          ID=`/usr/bin/id -u`
+                          #[ -n "$ID" -a "$ID" -le 200 ] && return
+                          # for bash and zsh, only if no alias is already set
+                          alias vi >/dev/null 2>&1 || alias vi=vim
+                        fi' > /etc/profile.d/vim.sh
+                        systemctl enable docker
+                        systemctl start docker
+                        usermod -aG docker ec2-user
+                        cd /home/ec2-user
+                        git clone https://github.com/tuimac/communication_tool; echo "cloned"
+                        chown -R ec2-user:ec2-user /home/ec2-user/communication_tool
+                        reboot
