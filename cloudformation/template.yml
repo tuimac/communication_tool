@@ -4,7 +4,7 @@ Description: Communication tool server for application development
 Parameters:
   EC2LaunchType:
     Type: String
-    Default: ondemand
+    Default: spot
     AllowedValues:
       - ondemand
       - spot
