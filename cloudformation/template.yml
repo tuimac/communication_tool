@@ -116,6 +116,16 @@ Resources:
         - IpProtocol: -1
           CidrIp: !Ref VpcCidr
           Description: ANY
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: for Let's encrypt
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: for Let's encrypt
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
