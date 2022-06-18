@@ -251,10 +251,13 @@ Resources:
                   fi' > /etc/profile.d/vim.sh
                   systemctl enable docker
                   systemctl start docker
+                  curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
                   usermod -aG docker ec2-user
                   cd /home/ec2-user
                   git clone https://github.com/tuimac/communication_tool; echo "cloned"
+                  git clone https://github.com/tuimac/tools; echo "cloned"
                   chown -R ec2-user:ec2-user /home/ec2-user/communication_tool
+                  chown -R ec2-user:ec2-user /home/ec2-user/tools
                   reboot
         - SpotFleetRequestConfigData:
             IamFleetRole: !GetAtt SpotFleetInstanceRole.Arn
@@ -324,4 +327,5 @@ Resources:
                         git clone https://github.com/tuimac/communication_tool; echo "cloned"
                         git clone https://github.com/tuimac/tools; echo "cloned"
                         chown -R ec2-user:ec2-user /home/ec2-user/communication_tool
+                        chown -R ec2-user:ec2-user /home/ec2-user/tools
                         reboot
